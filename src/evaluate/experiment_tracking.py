@@ -7,6 +7,8 @@ import pandas as pd
 from pathlib import Path
 import os
 import dagshub
+import io
+
 
 def init_mlflow():
     #dagshub.init(repo_owner='jaideep.palit', repo_name='bits-mtech-mlops-assignment-1', mlflow=True)
@@ -18,7 +20,7 @@ def init_mlflow():
     mlflow.set_tracking_uri(
         "https://dagshub.com/jaideep.palit/bits-mtech-mlops-assignment-1.mlflow"
     )
-    mlflow.set_experiment("Heart Disease Classification")
+    mlflow.set_experiment("Cats and Dogs Image Classification")
 
 
 
@@ -34,104 +36,49 @@ def compute_metrics(model, X_test, y_test):
     }
 
 
-def mlflow_logreg(logreg_grid,best_logreg,X_test, y_test,logreg_results,rf_results):
-    with mlflow.start_run(run_name="Logistic_Regression"):
-    
-        # Log hyperparameters
-        mlflow.log_param("model", "LogisticRegression")
-        mlflow.log_param("C", logreg_grid.best_params_["model__C"])
-        mlflow.log_param("penalty", "l2")
-        
-        # Train already done via GridSearch
-        metrics = compute_metrics(best_logreg, X_test, y_test)
-        
-        # Log metrics
+def mlflow_cnn(cnn_model,metrics):
+    with mlflow.start_run(run_name="CNN"):
+        output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
+        mlflow.log_param("model", "CNN")
+        mlflow.log_param("epochs", 10)
+        mlflow.log_param("batch_size", 32)
+        mlflow.log_param("optimizer", "adam")
+
         for k, v in metrics.items():
             mlflow.log_metric(k, v)
         
-        # Log model
-        mlflow.sklearn.log_model(best_logreg, artifact_path="model")
+        mlflow.sklearn.log_model(cnn_model, artifact_path="model")
 
-        log_roc_curve(best_logreg, X_test, y_test, "logreg_roc.png")
+        stream = io.StringIO()
+        cnn_model.summary(print_fn=lambda x: stream.write(x + '\n'))
+        summary_str = stream.getvalue()
 
-        mlflow_metric_comparision(logreg_results,rf_results)
+        # 2. Log the string to MLflow as a .txt file
+        mlflow.log_text(summary_str, "model_summary.txt")
+        print("Model summary logged to MLflow artifacts.")
 
-        print("Logged Logistic Regression run")
+        cnn_confusion_matrix_output_path=output_root_path/"cnn_confusion_matrix.png"
+        mlflow.log_artifact(cnn_confusion_matrix_output_path)
 
-def mlflow_rf(rf_grid,best_rf, X_test, y_test,logreg_results,rf_results):
-    with mlflow.start_run(run_name="Random_Forest"):
-        mlflow.log_param("model", "RandomForest")
-        mlflow.log_param("n_estimators", rf_grid.best_params_["model__n_estimators"])
-        mlflow.log_param("max_depth", rf_grid.best_params_["model__max_depth"])
-        mlflow.log_param("min_samples_split", rf_grid.best_params_["model__min_samples_split"])
-        
-        metrics = compute_metrics(best_rf, X_test, y_test)
-        
-        for k, v in metrics.items():
-            mlflow.log_metric(k, v)
-        
-        mlflow.sklearn.log_model(best_rf, artifact_path="model")
-        log_roc_curve(best_rf, X_test, y_test, "rf_roc.png")
+        cnn_roc_output_path=output_root_path/"cnn_roc.png"
+        mlflow.log_artifact(cnn_roc_output_path)
 
-        mlflow_metric_comparision(logreg_results,rf_results)
+        cnn_summary_output_path=output_root_path/"cnn_summary.png"
+        mlflow.log_artifact(cnn_summary_output_path)
 
-        
-        print("Logged Random Forest run")
-
-def log_roc_curve(model, X_test, y_test, filename):
-    output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
-    os.makedirs(output_root_path,exist_ok=True)
-    output_path=output_root_path/filename
-
-    probs = model.predict_proba(X_test)[:, 1]
-    fpr, tpr, _ = roc_curve(y_test, probs)
-    roc_auc = auc(fpr, tpr)
-
-    plt.figure(figsize=(6,5))
-    plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
-    plt.plot([0,1], [0,1], linestyle="--")
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve")
-    plt.legend()
-    plt.tight_layout()
-
-    plt.savefig(output_path)
-    plt.close()
-
-    mlflow.log_artifact(output_path)
-
-def mlflow_metric_comparision(logreg_results,rf_results):
-    output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
-    os.makedirs(output_root_path,exist_ok=True)
-    output_path=output_root_path/"model_comparison.png"
-    results_df = pd.DataFrame({
-        "Logistic Regression": logreg_results,
-        "Random Forest": rf_results
-    }).T
-
-    plt.figure(figsize=(8,5))
-    results_df.plot(kind="bar")
-    plt.title("Model Comparison Metrics")
-    plt.ylabel("Score")
-    plt.ylim(0,1)
-    plt.tight_layout()
-    plt.savefig(output_path)
-    plt.close()
-
-    mlflow.log_artifact(output_path)
+        print("Logged CNN run")
 
 def mlflow_eda():
     with mlflow.start_run(run_name="EDA"):
         output_root_path = Path(__file__).resolve().parents[2] / "output"/ "eda"
-        data_distribution_output_path=output_root_path/"data_distribution.png"
-        mlflow.log_artifact(data_distribution_output_path)
+        class_bal_image_res_channel_check_output_path=output_root_path/"class_bal_image_res_channel_check.png"
+        mlflow.log_artifact(class_bal_image_res_channel_check_output_path)
 
-        feature_distribution_output_path=output_root_path/"feature_distribution.png"
-        mlflow.log_artifact(feature_distribution_output_path)
+        eda_aspect_ratio_output_path=output_root_path/"eda_aspect_ratio.png"
+        mlflow.log_artifact(eda_aspect_ratio_output_path)
 
-        correlation_matrix_output_path=output_root_path/"correlation_matrix.png"
-        mlflow.log_artifact(correlation_matrix_output_path)
+        eda_resolution_dist_output_path=output_root_path/"eda_resolution_dist.png"
+        mlflow.log_artifact(eda_resolution_dist_output_path)
 
 def mlflow_end_run():
     mlflow.end_run()

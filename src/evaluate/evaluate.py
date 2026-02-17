@@ -1,110 +1,130 @@
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
-from sklearn.model_selection import cross_validate
+from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_fscore_support
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, auc
-from sklearn.metrics import ConfusionMatrixDisplay
+import seaborn as sns
+import os
+from pathlib import Path
+from tensorflow.keras.preprocessing import image
+
+def evaluate_cnn(model,test_ds):
+    # Get true labels and predictions
+    y_true = np.concatenate([y for x, y in test_ds], axis=0)
+    y_probs = model.predict(test_ds)
+    y_pred = (y_probs > 0.5).astype(int)
+
+    return y_true, y_probs,  y_pred
+
+def plot_cnn_confusion_matrix(y_true, y_pred):
+    output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
+    os.makedirs(output_root_path,exist_ok=True)
+    output_path=output_root_path/"cnn_confusion_matrix.png"
+
+    cm = confusion_matrix(y_true, y_pred)
+
+    plt.figure(figsize=(6, 5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Cat', 'Dog'], yticklabels=['Cat', 'Dog'])
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
+    plt.title('Confusion Matrix')
+    plt.savefig(output_path)
+    plt.show()
+
+def plot_cnn_roc_curve(y_true, y_probs):
+    output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
+    os.makedirs(output_root_path,exist_ok=True)
+    output_path=output_root_path/"cnn_roc.png"
+
+    fpr, tpr, thresholds = roc_curve(y_true, y_probs)
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate (1 - Specificity)')
+    plt.ylabel('True Positive Rate (Sensitivity)')
+    plt.title('Receiver Operating Characteristic (ROC)')
+    plt.legend(loc="lower right")
+    plt.savefig(output_path)
+    plt.show()
+    return roc_auc
 
 
-def evaluate_model(model, X_test, y_test):
-    y_pred = model.predict(X_test)
-    y_prob = model.predict_proba(X_test)[:, 1]
+def plot_cnn_summary(y_true, y_pred, roc_auc):
+    output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
+    os.makedirs(output_root_path,exist_ok=True)
+    output_path=output_root_path/"cnn_summary.png"
+
+    precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='binary')
+    accuracy = np.mean(y_true == y_pred)
+
+    print("-" * 30)
+    print(f"Final Test Evaluation:")
+    print("-" * 30)
+    print(f"Accuracy:  {accuracy:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall:    {recall:.4f}")
+    print(f"F1-Score:  {f1:.4f}")
+    print(f"ROC-AUC:   {roc_auc:.4f}")
+    print("-" * 30)
+
+    metrics_names = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC']
+    metrics_values = [accuracy, precision, recall, f1, roc_auc]
+
+    # 2. Set the visual style
+    plt.figure(figsize=(10, 6))
+    sns.set_theme(style="whitegrid")
+    palette = sns.color_palette("viridis", len(metrics_names))
+
+    # 3. Create the Bar Plot
+    ax = sns.barplot(x=metrics_names, y=metrics_values, palette=palette)
+
+    # 4. Add data labels on top of each bar
+    for p in ax.patches:
+        ax.annotate(f'{p.get_height():.4f}', 
+                    (p.get_x() + p.get_width() / 2., p.get_height()), 
+                    ha = 'center', va = 'center', 
+                    xytext = (0, 9), 
+                    textcoords = 'offset points',
+                    fontsize=12, fontweight='bold')
+
+    # 5. Final touches
+    plt.ylim(0, 1.1) # Scale to 1.1 to leave room for labels
+    plt.ylabel('Score (0.0 - 1.0)', fontsize=12)
+    plt.title('Final Test Evaluation Metrics', fontsize=16, fontweight='bold', pad=20)
+    plt.tight_layout()
+    plt.savefig(output_path)
+
+    plt.show()
 
     return {
-        "Accuracy": accuracy_score(y_test, y_pred),
-        "Precision": precision_score(y_test, y_pred),
-        "Recall": recall_score(y_test, y_pred),
-        "ROC-AUC": roc_auc_score(y_test, y_prob)
+        "Accuracy": accuracy,
+        "Precision": precision,
+        "Recall": recall,
+        "ROC-AUC":f1,
+        "F1-Score": roc_auc
     }
 
-def summarize_cv(cv_results):
-    return {k: np.mean(v) for k, v in cv_results.items() if "test_" in k}
+def get_sample_test_data():
+    data_dir = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images"
+    test_cat_path = f"{data_dir}/test/Cat"
+    test_dog_path = f"{data_dir}/test/Dog"
 
-def cross_validate_performance(model,X_train, y_train,scoring:list=None):
-    if not scoring:
-        scoring = ["accuracy", "precision", "recall", "roc_auc"]
+    cat_img = os.path.join(test_cat_path, os.listdir(test_cat_path)[0])
+    dog_img = os.path.join(test_dog_path, os.listdir(test_dog_path)[0])
 
-    cv_res = cross_validate(
-        model, X_train, y_train, scoring=scoring, cv=5
-    )
+    return cat_img, dog_img
 
-    return cv_res, summarize_cv(cv_res)
-
-
-def bar_plot_test_metric(logreg_results,rf_results):
-    # Convert results to DataFrame
-    results_df = pd.DataFrame({
-        "Logistic Regression": logreg_results,
-        "Random Forest": rf_results
-    })
-
-    results_df = results_df.T  # models as rows
-
-    # Plot
-    results_df.plot(kind="bar", figsize=(6,4))
-    plt.title("Model Performance Comparison (Test Set)")
-    plt.ylabel("Score")
-    plt.ylim(0, 1)
-    plt.xticks(rotation=0)
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
-    plt.legend(loc="lower right")
-    plt.tight_layout()
-    plt.show()
-
-
-def roc_plot(best_logreg,best_rf,X_test,y_test):
-
-    # Predict probabilities
-    logreg_probs = best_logreg.predict_proba(X_test)[:, 1]
-    rf_probs = best_rf.predict_proba(X_test)[:, 1]
-
-    # ROC data
-    fpr_lr, tpr_lr, _ = roc_curve(y_test, logreg_probs)
-    fpr_rf, tpr_rf, _ = roc_curve(y_test, rf_probs)
-
-    auc_lr = auc(fpr_lr, tpr_lr)
-    auc_rf = auc(fpr_rf, tpr_rf)
-
-    # Plot
-    plt.figure(figsize=(6,4))
-    plt.plot(fpr_lr, tpr_lr, label=f"Logistic Regression (AUC = {auc_lr:.2f})")
-    plt.plot(fpr_rf, tpr_rf, label=f"Random Forest (AUC = {auc_rf:.2f})")
-    plt.plot([0,1], [0,1], linestyle="--", color="gray")
-
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve Comparison")
-    plt.legend(loc="lower right")
-    plt.grid(alpha=0.4)
-    plt.tight_layout()
-    plt.show()
-
-
-def cv_score(cv_logreg,cv_rf):
-    cv_summary = pd.DataFrame({
-        "Logistic Regression": summarize_cv(cv_logreg),
-        "Random Forest": summarize_cv(cv_rf)
-    }).T
-
-    cv_summary.columns = [c.replace("test_", "").upper() for c in cv_summary.columns]
-
-    cv_summary.plot(kind="bar", figsize=(6,4))
-    plt.title("Cross-Validation Performance (5-Fold Mean)")
-    plt.ylabel("Score")
-    plt.ylim(0, 1)
-    plt.xticks(rotation=0)
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
-    plt.tight_layout()
-    plt.show()
-
-def confusion_matrix(best_rf,X_test,y_test):
-    ConfusionMatrixDisplay.from_estimator(
-        best_rf,
-        X_test,
-        y_test,
-        cmap="Blues"
-    )
-
-    plt.title("Random Forest – Confusion Matrix")
-    plt.show()
+def get_prediction(cnn_model,img_path, img_array=None):
+    if img_array is None:
+        img = image.load_img(img_path, target_size=(224, 224))
+        img_array = image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0) # Add batch dimension
+    
+    raw_prob = cnn_model.predict(img_array)[0][0]
+    
+    label = "Dog" if raw_prob > 0.5 else "Cat"
+    confidence = raw_prob if raw_prob > 0.5 else (1 - raw_prob)
+    
+    return label, confidence, raw_prob

@@ -1,31 +1,43 @@
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.compose import ColumnTransformer
 import pickle
 from pathlib import Path
 import os
+import tensorflow as tf
 
-def separate_feature_and_target(df):
-    X = df.drop(columns=["target"])
-    y = df["target"]
-    return X,y
+IMG_SIZE = (224, 224)
+BATCH_SIZE = 32
 
-def split_train_set_test_set(X,y):
-    return train_test_split(
-        X, y, test_size=0.2, stratify=y, random_state=42
+def load_test_dataset(data_dir="preprocessed_cats_dogs_images"):
+    data_root_path = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/data_dir
+    return  tf.keras.utils.image_dataset_from_directory(
+        f"{data_root_path}/test",
+        image_size=IMG_SIZE,
+        batch_size=BATCH_SIZE,
+        label_mode='binary',
+        shuffle=False # Crucial for matching predictions to labels
     )
 
+def load_training_dataset(data_dir="preprocessed_cats_dogs_images"):
 
-def scaling_numerical_feature(X_train):
-    numeric_features = X_train.select_dtypes(include=["int64", "float64"]).columns
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("num", StandardScaler(), numeric_features)
-        ],
-        remainder="passthrough"
+    data_root_path = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/data_dir
+    # Load datasets
+    train_ds = tf.keras.utils.image_dataset_from_directory(
+        f"{data_root_path}/train",
+        image_size=IMG_SIZE,
+        batch_size=BATCH_SIZE,
+        label_mode='binary'
     )
-    return preprocessor
+
+    val_ds = tf.keras.utils.image_dataset_from_directory(
+        f"{data_root_path}/val",
+        image_size=IMG_SIZE,
+        batch_size=BATCH_SIZE,
+        label_mode='binary'
+    )
+
+    train_ds = train_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
+    val_ds = val_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
+    return train_ds,val_ds
+
 
 def save_model(model_name:str,model):
     model_root_path = Path(__file__).resolve().parents[2] / "output"/ "models"

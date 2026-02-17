@@ -8,7 +8,7 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-1/src/app.py",
+            "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/app.py",
             "console": "integratedTerminal"
         },
         {

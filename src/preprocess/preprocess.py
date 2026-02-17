@@ -1,60 +1,67 @@
 
-import requests
-import zipfile
-import io,os
-import pandas as pd
 from pathlib import Path
 import subprocess
 import sys
+import kagglehub
+import os
+import cv2
+from tqdm import tqdm
+from sklearn.model_selection import train_test_split
 
 def download_dataset(url:str,download_path:str):
     download_path = Path(__file__).resolve().parents[2] / "data"/"raw"/download_path
-    response = requests.get(url)
-    with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-        z.extractall(download_path)
-
-    print("Downloaded and extracted files:")
-    print(z.namelist())
+    path = kagglehub.dataset_download(handle=url,output_dir=str(download_path))
+    print("Path to dataset files:", path)
+    data_dir = os.path.join(path, 'PetImages')
+    return data_dir
 
 
-def load_inspect_dataset(file_path:str,df_columns:list=None):
-    file_path = Path(__file__).resolve().parents[2] / "data"/"raw"/file_path
-    df = pd.read_csv(file_path, header=None)
-    if df_columns:
-        df.columns=df_columns
-    else:
-        df.columns = [
-            "age","sex","cp","trestbps","chol","fbs","restecg",
-            "thalach","exang","oldpeak","slope","ca","thal","target"
-        ]
-    return df
+def pre_process_dataset(data_dir:str,output_dir:str="preprocessed_cats_dogs_images"):
+    output_dir = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/output_dir
+    os.makedirs(output_dir,exist_ok=True)
+    categories = ['Cat', 'Dog']
+    splits = ['train', 'val', 'test']
 
-def handle_missing_value(df):
-    # Replace '?' with NaN
-    df = df.replace('?', pd.NA)
+    for s in splits:
+        for cat in categories:
+            os.makedirs(os.path.join(output_dir, s, cat), exist_ok=True)
 
-    # Convert all columns to numeric
-    df = df.apply(pd.to_numeric)
+    def process_and_save(file_list, category, split_name, target_size=(224, 224)):
+        """Resizes, converts to RGB, and saves images to the new directory."""
+        for file_path in tqdm(file_list, desc=f"Processing {category} for {split_name}"):
+            try:
+                # Read image
+                img = cv2.imread(file_path)
+                if img is None: continue
+                
+                # Preprocess: Resize to 224x224
+                img_resized = cv2.resize(img, target_size)
+                
+                # Save to new location
+                file_name = os.path.basename(file_path)
+                save_path = os.path.join(output_dir, split_name, category, file_name)
+                cv2.imwrite(save_path, img_resized)
+            except Exception as e:
+                print(f"Error processing {file_path}: {e}")
 
-    # Show missing
-    print(df.isna().sum())
+    # 3. Perform the Split and Execute
+    for category in categories:
+        cat_folder = os.path.join(data_dir, category)
+        all_files = [os.path.join(cat_folder, f) for f in os.listdir(cat_folder) if f.endswith(('.jpg', '.jpeg', '.png'))]
+        
+        # Split 80% Train, 20% Temp (Val + Test)
+        train_files, temp_files = train_test_split(all_files, test_size=0.20, random_state=42)
+        
+        # Split the 20% Temp into 50/50 (which is 10% / 10% of total)
+        val_files, test_files = train_test_split(temp_files, test_size=0.50, random_state=42)
+        
+        # Process and write to disk
+        process_and_save(train_files, category, 'train')
+        process_and_save(val_files, category, 'val')
+        process_and_save(test_files, category, 'test')
 
-    df["ca"].fillna(df["ca"].median(), inplace=True)
-    df["thal"].fillna(df["thal"].mode()[0], inplace=True)
-    return df
+    print(f"\n✅ Dataset saved successfully at: {os.path.abspath(output_dir)}")
 
-def extract_and_transform_categorical_features(df):
-    categorical_cols = ["sex","cp","fbs","restecg","exang","slope","thal"]
-    df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
-    df["target"] = df["target"].apply(lambda x: 1 if x > 0 else 0)
-    return df
-
-def save_preprocessed_data(df,file_name):
-    output_root_path = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"heart_disease_data"
-    os.makedirs(output_root_path,exist_ok=True)
-    output_path=output_root_path/file_name
-
-    df.to_csv(output_path, index=False)
 
 def run_cmd(cmd):
     """Run shell command safely and exit on failure."""
@@ -85,7 +92,7 @@ def data_versioning_with_dvc():
     # -------------------------------------------------
     # 4. Track dataset
     # -------------------------------------------------
-    processed_file_path = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"heart_disease_data"/"processed.cleveland.data"
+    processed_file_path = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images"
 
     run_cmd(f"dvc add {processed_file_path}")
 
