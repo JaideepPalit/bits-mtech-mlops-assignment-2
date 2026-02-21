@@ -105,6 +105,10 @@ jobs:
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
+      - name: Install GKE Auth Plugin
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
 
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v4
