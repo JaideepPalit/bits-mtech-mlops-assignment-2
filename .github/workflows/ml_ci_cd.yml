@@ -111,7 +111,7 @@ jobs:
         with:
           action: deploy
           manifests: |
-            k8s/deployment.yaml
+            charts/deployment.yaml
           # This replaces 'my-repo/my-app' in your YAML with the specific SHA tag
           images: |
             ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
