@@ -17,7 +17,7 @@ from tensorflow.keras import layers, models, optimizers, callbacks, regularizers
 # ----------------- CONFIG -----------------
 IMAGE_SIZE = 224             
 SEED = 123
-EPOCHS = 3
+EPOCHS = 1
 LEARNING_RATE = 1e-3
 MODEL_PATH = "cnn_scratch_best.h5"
 MIXED_PRECISION = False      
