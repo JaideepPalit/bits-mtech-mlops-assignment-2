@@ -109,18 +109,9 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           install_components: 'gke-gcloud-auth-plugin'
-
-      - name: Deploy to Kubernetes
-        uses: azure/k8s-deploy@v4
-        with:
-          action: deploy
-          namespace: bits
-          manifests: |
-            charts/deployment.yaml
-          # This replaces 'my-repo/my-app' in your YAML with the specific SHA tag
-          images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
-      
+      - name: Apply manifests (skip client-side validation)
+        run: |
+          kubectl set image deployment/cats-dogs-api cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:$GITHUB_SHA --namespace bits --validate=false
 
   Smoke-Test:
     name: Smoke Test
