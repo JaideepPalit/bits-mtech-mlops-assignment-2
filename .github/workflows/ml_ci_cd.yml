@@ -100,25 +100,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create Kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > ~/.kube/config
-          
       - name: Set Kubernetes Context
         uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
-          # Point to the file we just created instead of the secret directly
-          kubeconfig: ~/.kube/config
-
-      - name: Debug Config Structure
-        run: |
-          cat ~/.kube/config | head -c 20
-          
-      - name: Debug Kubernetes Failure
-        run: |
-          kubectl get pods
+          kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
 
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v4
