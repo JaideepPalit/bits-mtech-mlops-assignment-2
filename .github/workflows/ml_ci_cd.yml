@@ -126,19 +126,6 @@ jobs:
           images: |
             ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 
-      # - name: Set Kubernetes Context
-      #   uses: azure/k8s-set-context@v3
-      #   with:
-      #     method: kubeconfig
-      #     kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
-      # - name: Install GKE Auth Plugin
-      #   uses: google-github-actions/setup-gcloud@v2
-      #   with:
-      #     install_components: 'gke-gcloud-auth-plugin'
-      # - name: Apply manifests (skip client-side validation)
-      #   run: |
-      #     kubectl set image deployment/cats-dogs-api cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:$GITHUB_SHA --namespace bits
-
   Smoke-Test:
     name: Smoke Test
     runs-on: ubuntu-latest
