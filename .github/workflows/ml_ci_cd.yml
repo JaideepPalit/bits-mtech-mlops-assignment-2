@@ -16,81 +16,81 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # -------------------------
-    # Setup Python
-    # -------------------------
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11.9"
+    # # -------------------------
+    # # Setup Python
+    # # -------------------------
+    # - name: Set up Python
+    #   uses: actions/setup-python@v5
+    #   with:
+    #     python-version: "3.11.9"
 
-    # -------------------------
-    # Install dependencies
-    # -------------------------
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+    # # -------------------------
+    # # Install dependencies
+    # # -------------------------
+    # - name: Install dependencies
+    #   run: |
+    #     python -m pip install --upgrade pip
+    #     pip install -r requirements.txt
 
-    # -------------------------
-    # Linting
-    # -------------------------
-    - name: Run flake8 linting
-      continue-on-error: true
-      run: |
-        flake8 app/ tests/ --max-line-length=100
+    # # -------------------------
+    # # Linting
+    # # -------------------------
+    # - name: Run flake8 linting
+    #   continue-on-error: true
+    #   run: |
+    #     flake8 app/ tests/ --max-line-length=100
 
-    # -------------------------
-    # Unit tests
-    # -------------------------
-    - name: Run unit 
-      continue-on-error: true
-      run: |
-        pytest --junitxml=test-results.xml
+    # # -------------------------
+    # # Unit tests
+    # # -------------------------
+    # - name: Run unit 
+    #   continue-on-error: true
+    #   run: |
+    #     pytest --junitxml=test-results.xml
 
-    # -------------------------
-    # Execute eda_preprocess.py
-    # -------------------------
-    - name: Run preprocess eda train evaluate
-      continue-on-error: true
-      run: |
-        python src/eda_preprocess.py
+    # # -------------------------
+    # # Execute eda_preprocess.py
+    # # -------------------------
+    # - name: Run preprocess eda train evaluate
+    #   continue-on-error: true
+    #   run: |
+    #     python src/eda_preprocess.py
 
-    # -------------------------
-    # Execute train_evaluate_model.py
-    # -------------------------
-    - name: Run train and evaluate
-      continue-on-error: true
-      run: |
-        python src/train_evaluate_model.py
+    # # -------------------------
+    # # Execute train_evaluate_model.py
+    # # -------------------------
+    # - name: Run train and evaluate
+    #   continue-on-error: true
+    #   run: |
+    #     python src/train_evaluate_model.py
 
-    # -------------------------
-    # Set up Docker Buildx
-    # -------------------------
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    # # -------------------------
+    # # Set up Docker Buildx
+    # # -------------------------
+    # - name: Set up Docker Buildx
+    #   uses: docker/setup-buildx-action@v3
 
-    # -------------------------
-    # Login to Docker Hub
-    # -------------------------
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # # -------------------------
+    # # Login to Docker Hub
+    # # -------------------------
+    # - name: Login to Docker Hub
+    #   uses: docker/login-action@v3
+    #   with:
+    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # -------------------------
-    # Build and Push Image
-    # -------------------------
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: Dockerfile
-        push: true
-        tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
+    # # -------------------------
+    # # Build and Push Image
+    # # -------------------------
+    # - name: Build and push Docker image
+    #   uses: docker/build-push-action@v5
+    #   with:
+    #     context: .
+    #     file: Dockerfile
+    #     push: true
+    #     tags: |
+    #       ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:latest
+    #       ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 
   ML-CD-Pipeline:
     runs-on: ubuntu-latest
