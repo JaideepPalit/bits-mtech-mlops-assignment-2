@@ -13,6 +13,8 @@ from sklearn.metrics import (
     roc_auc_score
 )
 from pathlib import Path
+from experiment_tracking import init_mlflow, mlflow_end_run,mlflow_cnn_post_deploy_eval
+from evaluate import plot_cnn_confusion_matrix
 
 
 # ---------------- CONFIG ----------------
@@ -44,7 +46,9 @@ def send_request(url, image_path):
 
 
 def post_deploy_evaluate():
-    url="http://34.102.150.120/predict"
+    # url="http://34.102.150.120/predict"
+    url="http://0.0.0.0:8000/predict"
+
     limit=100
     data_dir = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images"/"test"
 
@@ -81,17 +85,31 @@ def post_deploy_evaluate():
     df = pd.DataFrame(results)
 
     # Convert labels to binary (Dog = 1, Cat = 0)
-    y_true = (df["true_label"] == "dog").astype(int)
-    y_pred = (df["pred_label"] == "dog").astype(int)
+    y_true = (df["true_label"] == "cat").astype(int)
+    y_pred = (df["pred_label"] == "cat").astype(int)
     y_prob = df["raw_probability"].astype(float)
 
     print("\n===== Post-Deployment Metrics =====")
     print("Accuracy:", accuracy_score(y_true, y_pred))
-    print("Precision (Dog):", precision_score(y_true, y_pred))
-    print("Recall (Dog):", recall_score(y_true, y_pred))
-    print("F1 Score (Dog):", f1_score(y_true, y_pred))
+    print("Precision (Cat):", precision_score(y_true, y_pred))
+    print("Recall (Cat):", recall_score(y_true, y_pred))
+    print("F1 Score (Cat):", f1_score(y_true, y_pred))
     print("Confusion Matrix:\n", confusion_matrix(y_true, y_pred))
-    print("ROC AUC:", roc_auc_score(y_true, y_prob))
+
+    metrics={
+        "Accuracy": f"{accuracy_score(y_true, y_pred)}",
+        "Precision": f"{precision_score(y_true, y_pred)}",
+        "Recall": f"{recall_score(y_true, y_pred)}",
+        "F1-Score": f"{f1_score(y_true, y_pred)}"
+        }
+    
+    plot_cnn_confusion_matrix(y_true, y_pred, "confusion_matrix_post_deploy_eval.png")
+
+    init_mlflow()
+    mlflow_end_run()
+    mlflow_cnn_post_deploy_eval(metrics)
+    mlflow_end_run()
+
 
 
 if __name__ == "__main__":

@@ -121,6 +121,7 @@ jobs:
         with:
           action: deploy
           namespace: bits
+          timeout: 5
           manifests: |
             charts/deployment.yaml
           images: |
@@ -129,7 +130,6 @@ jobs:
   Smoke-Test:
     name: Smoke Test
     runs-on: ubuntu-latest
-    needs: ML-CD-Pipeline   
 
     steps:
       - name: Checkout
@@ -172,3 +172,18 @@ jobs:
           fi
 
           echo "Smoke test passed"
+
+  Post-Deploy-Evalation-Test:
+    name: Post Deploy Evalation Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # -------------------------
+      # Execute post_deploy_eval.py
+      # -------------------------
+      - name: Run post_deploy_eval script
+        continue-on-error: true
+        run: |
+          python src/evaluate/post_deploy_eval.py

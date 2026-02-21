@@ -14,10 +14,10 @@ def evaluate_cnn(model,test_ds):
 
     return y_true, y_probs,  y_pred
 
-def plot_cnn_confusion_matrix(y_true, y_pred):
+def plot_cnn_confusion_matrix(y_true, y_pred,file_name="cnn_confusion_matrix.png"):
     output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
     os.makedirs(output_root_path,exist_ok=True)
-    output_path=output_root_path/"cnn_confusion_matrix.png"
+    output_path=output_root_path/file_name
 
     cm = confusion_matrix(y_true, y_pred)
 
@@ -27,7 +27,6 @@ def plot_cnn_confusion_matrix(y_true, y_pred):
     plt.ylabel('True Label')
     plt.title('Confusion Matrix')
     plt.savefig(output_path)
-    plt.show()
 
 def plot_cnn_roc_curve(y_true, y_probs):
     output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
@@ -47,7 +46,6 @@ def plot_cnn_roc_curve(y_true, y_probs):
     plt.title('Receiver Operating Characteristic (ROC)')
     plt.legend(loc="lower right")
     plt.savefig(output_path)
-    plt.show()
     return roc_auc
 
 
@@ -96,7 +94,6 @@ def plot_cnn_summary(y_true, y_pred, roc_auc):
     plt.tight_layout()
     plt.savefig(output_path)
 
-    plt.show()
 
     return {
         "Accuracy": accuracy,

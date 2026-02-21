@@ -35,6 +35,15 @@ def compute_metrics(model, X_test, y_test):
         "roc_auc": roc_auc_score(y_test, y_prob)
     }
 
+def mlflow_cnn_post_deploy_eval(metrics):
+    with mlflow.start_run(run_name="CNN Post Deploy Evaluation Metric"):
+        mlflow.log_param("model", "CNN")
+        mlflow.log_param("test samples", "100")
+        for k, v in metrics.items():
+            mlflow.log_metric(k, v)
+        output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
+        cnn_confusion_matrix_output_path=output_root_path/"confusion_matrix_post_deploy_eval.png"
+        mlflow.log_artifact(cnn_confusion_matrix_output_path)
 
 def mlflow_cnn(cnn_model,metrics):
     with mlflow.start_run(run_name="CNN"):

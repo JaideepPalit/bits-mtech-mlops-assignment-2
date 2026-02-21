@@ -14,13 +14,13 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import layers, models, optimizers, callbacks, regularizers
 
-# ----------------- USER CONFIG -----------------
-IMAGE_SIZE = 224             # 128/160 => faster; 224 => slower but may improve accuracy
+# ----------------- CONFIG -----------------
+IMAGE_SIZE = 224             
 SEED = 123
 EPOCHS = 3
 LEARNING_RATE = 1e-3
 MODEL_PATH = "cnn_scratch_best.h5"
-MIXED_PRECISION = False      # Set True on AMP-capable GPU and TF>=2.4
+MIXED_PRECISION = False      
 # ------------------------------------------------
 
 if MIXED_PRECISION:

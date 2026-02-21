@@ -5,10 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python Debugger: app.py File",
             "type": "debugpy",
             "request": "launch",
             "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/app.py",
+            "console": "integratedTerminal"
+        },
+
+        {
+            "name": "Python Debugger: post eval File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/evaluate/post_deploy_eval.py",
             "console": "integratedTerminal"
         },
         {
