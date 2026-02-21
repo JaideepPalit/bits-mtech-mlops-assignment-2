@@ -109,7 +109,9 @@ jobs:
       # Recreate kubeconfig
       - name: Setup kubeconfig
         run: |
+          mkdir -p $HOME/.kube
           echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
 
       # Verify cluster connection
       - name: Test cluster access
