@@ -1,5 +1,5 @@
 from train.train_util import load_training_dataset
-from train.train_cnn import build_cnn,train_cnn, plot_results
+from train.train_cnn import build_cnn,train_cnn, plot_results, compile_model
 from evaluate.evaluate import evaluate_cnn, plot_cnn_confusion_matrix,plot_cnn_summary,plot_cnn_confusion_matrix,plot_cnn_roc_curve
 
 from train.train_util import save_model, load_test_dataset
@@ -9,8 +9,7 @@ from evaluate.experiment_tracking import init_mlflow, mlflow_end_run,mlflow_eda,
 train_ds,val_ds=load_training_dataset()
 
 cnn_model=build_cnn()
-
-cnn_model.summary()
+compile_model(cnn_model)
 
 history=train_cnn(model=cnn_model,train_ds=train_ds,val_ds=val_ds)
 
