@@ -17,7 +17,7 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-        "${workspaceFolder}/tests/evaluate/test_evalaute.py"
+        "${workspaceFolder}/tests"
       ],
       "env": {
       },

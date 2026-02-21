@@ -18,7 +18,7 @@ def init_mlflow():
     #os.environ["MLFLOW_TRACKING_URI"] = "https://dagshub.com/jaideep.palit/bits-mtech-mlops-assignment-1.mlflow"
 
     mlflow.set_tracking_uri(
-        "https://dagshub.com/jaideep.palit/bits-mtech-mlops-assignment-1.mlflow"
+        "https://dagshub.com/jaideep.palit/bits-mtech-mlops-assignment-2.mlflow"
     )
     mlflow.set_experiment("Cats and Dogs Image Classification")
 

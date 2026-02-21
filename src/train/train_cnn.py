@@ -63,7 +63,7 @@ def train_cnn(model,train_ds,val_ds):
     history = model.fit(
         train_ds,
         validation_data=val_ds,
-        epochs=10, # Max epochs, but early_stop will likely trigger sooner
+        epochs=7, # Max epochs, but early_stop will likely trigger sooner
         callbacks=[early_stop]
     )
 

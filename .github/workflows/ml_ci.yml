@@ -49,12 +49,20 @@ jobs:
         pytest --junitxml=test-results.xml
 
     # -------------------------
-    # Execute main.py
+    # Execute eda_preprocess.py
     # -------------------------
     - name: Run preprocess eda train evaluate
       continue-on-error: true
       run: |
-        python src/main.py
+        python src/eda_preprocess.py
+
+    # -------------------------
+    # Execute train_evaluate_model.py
+    # -------------------------
+    - name: Run train and evaluate
+      continue-on-error: true
+      run: |
+        python src/train_evaluate_model.py
 
     # -------------------------
     # Set up Docker Buildx
@@ -81,6 +89,6 @@ jobs:
         file: Dockerfile
         push: true
         tags: |
-          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtect_mlops:latest
-          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtect_mlops:${{ github.sha }}
+          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 

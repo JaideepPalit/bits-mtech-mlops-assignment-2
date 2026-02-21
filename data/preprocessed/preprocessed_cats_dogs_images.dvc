@@ -1,0 +1,5 @@
+outs:
+- md5: 9859d0046f49ec9774fe613640269a34.dir
+  size: 562653005
+  nfiles: 24946
+  path: preprocessed_cats_dogs_images

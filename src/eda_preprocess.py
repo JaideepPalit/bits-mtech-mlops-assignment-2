@@ -1,0 +1,13 @@
+from preprocess.preprocess import download_dataset
+from preprocess.eda import eda_class_bal_image_res_channel_check, perform_eda_res_disjoint_aspect_ratio
+from preprocess.preprocess import pre_process_dataset,data_versioning_with_dvc
+
+data_dir=download_dataset(url="bhavikjikadara/dog-and-cat-classification-dataset",download_path="cats_and_dogs_classification_data")
+
+eda_class_bal_image_res_channel_check(data_dir=data_dir)
+
+df_stats = perform_eda_res_disjoint_aspect_ratio(data_dir)
+
+pre_process_dataset(data_dir=data_dir)
+
+data_versioning_with_dvc()

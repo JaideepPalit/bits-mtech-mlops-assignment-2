@@ -82,10 +82,11 @@ def run_cmd(cmd):
     print(result.stdout)
 
 def data_versioning_with_dvc():
-    run_cmd("dvc remote add -f origin s3://dvc")
-    run_cmd("dvc remote modify origin endpointurl https://dagshub.com/jaideep.palit/bits-mtech-mlops-assignment-1.s3")
     
 
+    run_cmd("dvc remote add -f origin s3://dvc")
+    run_cmd("dvc remote modify origin endpointurl https://dagshub.com/jaideep.palit/bits-mtech-mlops-assignment-2.s3")
+    
     run_cmd("dvc remote modify origin --local access_key_id d85f991495a6411e956277b0781bd119dfac225d")
     run_cmd("dvc remote modify origin --local secret_access_key d85f991495a6411e956277b0781bd119dfac225d")
 
