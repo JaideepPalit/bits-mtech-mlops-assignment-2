@@ -5,6 +5,7 @@ import tensorflow as tf
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
+SEED = 123
 
 def load_test_dataset(data_dir="preprocessed_cats_dogs_images"):
     data_root_path = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/data_dir
@@ -24,7 +25,18 @@ def load_training_dataset(data_dir="preprocessed_cats_dogs_images"):
         f"{data_root_path}/train",
         image_size=IMG_SIZE,
         batch_size=BATCH_SIZE,
-        label_mode='binary'
+        label_mode='binary',
+        shuffle=True,
+        seed=SEED
+    )
+
+    train_ds = (
+        train_ds
+        .unbatch()               
+        .shuffle(1000, seed=SEED)    
+        .take(100)               
+        .batch(BATCH_SIZE)           
+        .prefetch(tf.data.AUTOTUNE)   
     )
 
     val_ds = tf.keras.utils.image_dataset_from_directory(
@@ -33,6 +45,16 @@ def load_training_dataset(data_dir="preprocessed_cats_dogs_images"):
         batch_size=BATCH_SIZE,
         label_mode='binary'
     )
+
+    val_ds = (
+        val_ds
+        .unbatch()                    
+        .shuffle(1000, seed=SEED)    
+        .take(100)                  
+        .batch(BATCH_SIZE)            
+        .prefetch(tf.data.AUTOTUNE)   
+    )
+
 
     train_ds = train_ds.prefetch(buffer_size=tf.data.AUTOTUNE)
     val_ds = val_ds.prefetch(buffer_size=tf.data.AUTOTUNE)

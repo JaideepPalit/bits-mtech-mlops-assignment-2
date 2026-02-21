@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  lint-test-train:
+  ML-CI-Pipeline:
     runs-on: ubuntu-latest
 
     steps:
@@ -92,3 +92,77 @@ jobs:
           ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:latest
           ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 
+  ML-CD-Pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install kubectl
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
+
+      # Recreate kubeconfig
+      - name: Setup kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > $HOME/.kube/config
+
+      # Verify cluster connection
+      - name: Test cluster access
+        run: kubectl get nodes
+
+      # Deploy
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/cats-dogs-api \
+          cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:$GITHUB_SHA
+
+  Smoke-Test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: deploy   # remove if not needed
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install curl & jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Health Check
+        run: |
+          echo "Checking /health endpoint..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://34.102.150.120/health)
+
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Health check failed with status $STATUS"
+            exit 1
+          fi
+
+          echo "Health check passed"
+
+      - name: Predict API Test
+        run: |
+          echo "Testing /predict endpoint..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            --request POST \
+            --url http://34.102.150.120/predict \
+            --header 'content-type: multipart/form-data' \
+            --form file=@data/preprocessed/preprocessed_cats_dogs_images/test/Dog/51.jpg)
+
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          STATUS=$(echo "$RESPONSE" | tail -n1)
+
+          echo "Response body: $BODY"
+          echo "Status code: $STATUS"
+
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Predict endpoint failed"
+            exit 1
+          fi
+
+          echo "Smoke test passed"

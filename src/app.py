@@ -22,7 +22,7 @@ app = FastAPI(
 # -------------------------------------------------
 # Health check endpoint
 # -------------------------------------------------
-@app.get("/")
+@app.get("/health")
 def health():
     return {"status": "ok"}
 
