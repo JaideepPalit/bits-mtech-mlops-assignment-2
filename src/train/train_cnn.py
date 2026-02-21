@@ -8,66 +8,147 @@ import tensorflow as tf
 from tensorflow.keras import layers, models, callbacks
 import matplotlib.pyplot as plt
 
-def build_cnn():
-    model = models.Sequential([
-        # Data Augmentation Layer (Applied only during training)
-        layers.RandomFlip("horizontal"),
-        layers.RandomRotation(0.1),
-        
-        # Rescaling layer (converts [0, 255] to [0, 1])
-        layers.Rescaling(1./255, input_shape=(224, 224, 3)),
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras import layers, models, optimizers, callbacks, regularizers
 
-        # Block 1
-        layers.Conv2D(32, (3, 3), padding='same'),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.MaxPooling2D((2, 2)),
+# ----------------- USER CONFIG -----------------
+DATA_DIR = "/path/to/data"   # MUST contain subfolders 'cats' and 'dogs'
+IMAGE_SIZE = 224             # 128/160 => faster; 224 => slower but may improve accuracy
+BATCH_SIZE = 32
+VAL_SPLIT = 0.2
+SEED = 123
+EPOCHS = 30
+LEARNING_RATE = 1e-3
+MODEL_PATH = "cnn_scratch_best.h5"
+MIXED_PRECISION = False      # Set True on AMP-capable GPU and TF>=2.4
+# ------------------------------------------------
 
-        # Block 2
-        layers.Conv2D(64, (3, 3), padding='same'),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.MaxPooling2D((2, 2)),
+if MIXED_PRECISION:
+    tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
-        # Block 3
-        layers.Conv2D(128, (3, 3), padding='same'),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.MaxPooling2D((2, 2)),
+AUTOTUNE = tf.data.AUTOTUNE
+def build_cnn(image_size=IMAGE_SIZE, dropout=0.4, l2=1e-4):
+    inputs = layers.Input(shape=(image_size, image_size, 3))
+    x = inputs
 
-        # Block 4
-        layers.Conv2D(256, (3, 3), padding='same'),
-        layers.BatchNormalization(),
-        layers.Activation('relu'),
-        layers.GlobalAveragePooling2D(), # Reduces spatial dimensions to a single vector
+    # Stem
+    x = layers.Conv2D(32, 3, strides=2, padding='same',
+                      kernel_regularizer=regularizers.l2(l2))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
 
-        # Fully Connected
-        layers.Dense(128, activation='relu'),
-        layers.Dropout(0.5),
-        layers.Dense(1, activation='sigmoid') # Output 0 or 1
-    ])
-    
+    # Efficient separable conv blocks
+    for filters in [32, 64, 128]:
+        x = layers.SeparableConv2D(filters, 3, padding='same',
+                                   depthwise_regularizer=regularizers.l2(l2),
+                                   pointwise_regularizer=regularizers.l2(l2))(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.ReLU()(x)
+        x = layers.MaxPooling2D(2)(x)
+
+    # Bottleneck
+    x = layers.SeparableConv2D(256, 3, padding='same',
+                               depthwise_regularizer=regularizers.l2(l2),
+                               pointwise_regularizer=regularizers.l2(l2))(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.ReLU()(x)
+
+    x = layers.GlobalAveragePooling2D()(x)
+    x = layers.Dropout(dropout)(x)
+    x = layers.Dense(128, activation='relu', kernel_regularizer=regularizers.l2(l2))(x)
+    x = layers.Dropout(dropout)(x)
+
+    final_dense_kwargs = {"dtype": "float32"} if MIXED_PRECISION else {}
+    outputs = layers.Dense(1, activation='sigmoid', **final_dense_kwargs)(x)
+
+    model = models.Model(inputs, outputs, name="cnn_scratch")
     return model
 
-def train_cnn(model,train_ds,val_ds):
-    model = build_cnn()
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    # Stop if validation loss doesn't improve for 5 epochs
-    early_stop = callbacks.EarlyStopping(
-        monitor='val_loss', 
-        patience=5, 
-        restore_best_weights=True
+def compile_model(model, lr=LEARNING_RATE):
+    model.compile(
+        optimizer=optimizers.Adam(learning_rate=lr),
+        loss='binary_crossentropy',
+        metrics=[
+            'accuracy',                        # you'll get val_accuracy automatically
+            tf.keras.metrics.AUC(name='auc'),
+            tf.keras.metrics.Precision(name='precision'),
+            tf.keras.metrics.Recall(name='recall')
+        ]
     )
 
-    # Train the model
-    history = model.fit(
-        train_ds,
-        validation_data=val_ds,
-        epochs=7, # Max epochs, but early_stop will likely trigger sooner
-        callbacks=[early_stop]
-    )
+def train_cnn(model, train_ds, val_ds, epochs=EPOCHS):
+    cb = [
+        callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
+        callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-6),
+        callbacks.ModelCheckpoint(MODEL_PATH, save_best_only=True, monitor='val_loss')
+    ]
 
+    history = model.fit(train_ds, validation_data=val_ds, epochs=epochs, callbacks=cb)
     return history
+
+# def build_cnn():
+#     model = models.Sequential([
+#         # Data Augmentation Layer (Applied only during training)
+#         layers.RandomFlip("horizontal"),
+#         layers.RandomRotation(0.1),
+        
+#         # Rescaling layer (converts [0, 255] to [0, 1])
+#         layers.Rescaling(1./255, input_shape=(224, 224, 3)),
+
+#         # Block 1
+#         layers.Conv2D(32, (3, 3), padding='same'),
+#         layers.BatchNormalization(),
+#         layers.Activation('relu'),
+#         layers.MaxPooling2D((2, 2)),
+
+#         # Block 2
+#         layers.Conv2D(64, (3, 3), padding='same'),
+#         layers.BatchNormalization(),
+#         layers.Activation('relu'),
+#         layers.MaxPooling2D((2, 2)),
+
+#         # Block 3
+#         layers.Conv2D(128, (3, 3), padding='same'),
+#         layers.BatchNormalization(),
+#         layers.Activation('relu'),
+#         layers.MaxPooling2D((2, 2)),
+
+#         # Block 4
+#         layers.Conv2D(256, (3, 3), padding='same'),
+#         layers.BatchNormalization(),
+#         layers.Activation('relu'),
+#         layers.GlobalAveragePooling2D(), # Reduces spatial dimensions to a single vector
+
+#         # Fully Connected
+#         layers.Dense(128, activation='relu'),
+#         layers.Dropout(0.5),
+#         layers.Dense(1, activation='sigmoid') # Output 0 or 1
+#     ])
+    
+#     return model
+
+# def train_cnn(model,train_ds,val_ds):
+#     model = build_cnn()
+#     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+#     # Stop if validation loss doesn't improve for 5 epochs
+#     early_stop = callbacks.EarlyStopping(
+#         monitor='val_loss', 
+#         patience=5, 
+#         restore_best_weights=True
+#     )
+
+#     # Train the model
+#     history = model.fit(
+#         train_ds,
+#         validation_data=val_ds,
+#         epochs=7, # Max epochs, but early_stop will likely trigger sooner
+#         callbacks=[early_stop]
+#     )
+
+#     return history
 
 def plot_results(history):
     acc = history.history['accuracy']

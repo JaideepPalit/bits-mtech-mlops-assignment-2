@@ -105,9 +105,8 @@ def data_versioning_with_dvc():
     print("\nDVC setup completed successfully")
 
 def git_dvc_version():
-    processed_file_path_dvc = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"heart_disease_data"/"processed.cleveland.data.dvc"
-
-    run_cmd("git remote set-url origin https://JaideepPalit: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@github.com/JaideepPalit/bits-mtech-mlops-assignment-1.git")
+    processed_file_path_dvc = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images.dvc"
+    run_cmd("git remote set-url origin https://JaideepPalit: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@github.com/JaideepPalit/bits-mtech-mlops-assignment-2.git")
     # Add specific file
     run_cmd(f"git add {processed_file_path_dvc}")
 
