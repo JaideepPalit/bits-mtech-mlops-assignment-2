@@ -112,6 +112,10 @@ jobs:
           # Point to the file we just created instead of the secret directly
           kubeconfig: ~/.kube/config
 
+      - name: Debug Config Structure
+        run: |
+          cat ~/.kube/config | head -c 20
+
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v4
         with:
