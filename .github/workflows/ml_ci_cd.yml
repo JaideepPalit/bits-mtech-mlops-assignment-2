@@ -100,18 +100,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set Kubernetes Context
-        uses: azure/k8s-set-context@v3
+      # 1. Authenticate to Google Cloud 
+      # Save your Service Account JSON key as a GitHub Secret named GCP_SA_KEY
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
         with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
-      - name: Install GKE Auth Plugin
-        uses: google-github-actions/setup-gcloud@v2
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      # 2. Set up GKE credentials
+      # This step installs the 'gke-gcloud-auth-plugin' automatically
+      - id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v2'
         with:
-          install_components: 'gke-gcloud-auth-plugin'
-      - name: Apply manifests (skip client-side validation)
-        run: |
-          kubectl set image deployment/cats-dogs-api cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:$GITHUB_SHA --namespace bits --validate=false
+          cluster_name: 'autopilot-cluster-1'
+          location: 'europe-central2' # or your cluster region/zone
+
+      # 3. Deploy using the manifests
+      - name: Deploy to Kubernetes
+        uses: azure/k8s-deploy@v4
+        with:
+          action: deploy
+          namespace: bits
+          manifests: |
+            k8s/deployment.yaml
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
+
+      # - name: Set Kubernetes Context
+      #   uses: azure/k8s-set-context@v3
+      #   with:
+      #     method: kubeconfig
+      #     kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
+      # - name: Install GKE Auth Plugin
+      #   uses: google-github-actions/setup-gcloud@v2
+      #   with:
+      #     install_components: 'gke-gcloud-auth-plugin'
+      # - name: Apply manifests (skip client-side validation)
+      #   run: |
+      #     kubectl set image deployment/cats-dogs-api cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:$GITHUB_SHA --namespace bits
 
   Smoke-Test:
     name: Smoke Test
