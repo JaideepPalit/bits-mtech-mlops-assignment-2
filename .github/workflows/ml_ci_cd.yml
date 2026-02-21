@@ -100,28 +100,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install gcloud + gke-gcloud-auth-plugin
-        uses: google-github-actions/setup-gcloud@v3
+      - name: Set Kubernetes Context
+        uses: azure/k8s-set-context@v3
         with:
-          version: 'latest'
-          install_components: 'gke-gcloud-auth-plugin'
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG_DATA }}
 
-      # Recreate kubeconfig
-      - name: Setup kubeconfig
-        run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 -d > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-
-      # Verify cluster connection
-      - name: Test cluster access
-        run: kubectl get nodes
-
-      # Deploy
       - name: Deploy to Kubernetes
-        run: |
-          kubectl set image deployment/cats-dogs-api \
-          cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:$GITHUB_SHA
+        uses: azure/k8s-deploy@v4
+        with:
+          action: deploy
+          manifests: |
+            k8s/deployment.yaml
+          # This replaces 'my-repo/my-app' in your YAML with the specific SHA tag
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 
   Smoke-Test:
     name: Smoke Test
