@@ -120,11 +120,15 @@ jobs:
         uses: azure/k8s-deploy@v4
         with:
           action: deploy
+          namespace: bits
           manifests: |
             charts/deployment.yaml
           # This replaces 'my-repo/my-app' in your YAML with the specific SHA tag
           images: |
             ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
+      - name: Debug Kubernetes Failure
+        run: |
+          kubectl get pods
 
   Smoke-Test:
     name: Smoke Test
