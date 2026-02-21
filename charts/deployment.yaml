@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: heart-disease-api
+  name: cats-dogs-api
   namespace: bits
   labels:
-    app: heart-disease-api
+    app: cats-dogs-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: heart-disease-api
+      app: cats-dogs-api
   template:
     metadata:
       labels:
-        app: heart-disease-api
+        app: cats-dogs-api
     spec:
       imagePullSecrets:
         - name: regcred
       containers:
-      - name: heart-disease-api
+      - name: cats-dogs-api
         image: jaideeppalit/bits_mtect_mlops:latest
         imagePullPolicy: Always
         ports:
@@ -32,13 +32,13 @@ spec:
             memory: "1Gi"
         readinessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 8000
           initialDelaySeconds: 10
           periodSeconds: 60
         livenessProbe:
           httpGet:
-            path: /
+            path: /health
             port: 8000
           initialDelaySeconds: 30
           periodSeconds: 60
