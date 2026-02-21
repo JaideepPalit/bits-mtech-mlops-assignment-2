@@ -6,7 +6,7 @@ import subprocess
 import numpy as np
 import pytest
 
-import src.preprocess.preprocess as mod
+import preprocess.preprocess as mod
 
 
 @pytest.fixture(autouse=True)

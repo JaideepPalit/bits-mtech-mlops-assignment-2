@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pytest
 
-import src.preprocess.eda as mod
+import preprocess.eda as mod
 
 
 @pytest.fixture(autouse=True)

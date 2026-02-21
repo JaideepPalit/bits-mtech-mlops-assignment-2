@@ -9,7 +9,7 @@ matplotlib.use("Agg")  # non-interactive backend for tests
 import matplotlib.pyplot as plt
 import pytest
 
-import src.evaluate.evaluate as mod
+import evaluate.evaluate as mod
 
 
 @pytest.fixture(autouse=True)

@@ -1,4 +1,4 @@
-name: ML CI Pipeline
+name: ML CI CD Pipeline
 
 on:
   push:

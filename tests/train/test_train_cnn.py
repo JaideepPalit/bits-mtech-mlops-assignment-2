@@ -6,7 +6,7 @@ import pytest
 import matplotlib.pyplot as plt
 plt.switch_backend("Agg")
 
-import src.train.train_cnn as mod
+import train.train_cnn as mod
 import tensorflow as tf
 
 

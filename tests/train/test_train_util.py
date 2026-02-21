@@ -7,7 +7,7 @@ import pytest
 import tensorflow as tf
 
 # Replace this with your actual module name if it's not `data_io`
-import src.train.train_util as mod
+import train.train_util as mod
 
 
 @pytest.fixture(autouse=True)
