@@ -122,7 +122,7 @@ jobs:
           action: deploy
           namespace: bits
           manifests: |
-            k8s/deployment.yaml
+            charts/deployment.yaml
           images: |
             ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 
