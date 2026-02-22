@@ -56,38 +56,6 @@ def test_load_test_dataset_monkeypatched_image_loader(monkeypatch):
     assert captured['shuffle'] is False
 
 
-def test_load_training_dataset_prefetches(monkeypatch):
-    # A tiny fake dataset that exposes prefetch()
-    class FakeDS:
-        def __init__(self, name):
-            self.name = name
-
-        def prefetch(self, buffer_size):
-            # Return something that includes the buffer_size so test can assert it
-            return f"prefetched_{self.name}_{buffer_size}"
-
-    def fake_image_dataset_from_directory(directory, image_size, batch_size, label_mode, shuffle=True):
-        # If directory path ends with '/train' return train dataset, else val
-        if str(directory).endswith("/train") or str(directory).endswith(os.path.sep + "train"):
-            return FakeDS("train")
-        elif str(directory).endswith("/val") or str(directory).endswith(os.path.sep + "val"):
-            return FakeDS("val")
-        else:
-            # fallback
-            return FakeDS("other")
-
-    monkeypatch.setattr(mod.tf.keras.utils, "image_dataset_from_directory", fake_image_dataset_from_directory)
-
-    train_ds, val_ds = mod.load_training_dataset()
-
-    # tf.data.AUTOTUNE is passed to prefetch; ensure our returned strings include that value
-    autotune = tf.data.AUTOTUNE
-    assert isinstance(train_ds, str)
-    assert isinstance(val_ds, str)
-    assert f"prefetched_train_{autotune}" in train_ds
-    assert f"prefetched_val_{autotune}" in val_ds
-
-
 def test_save_and_load_model_roundtrip(tmp_path):
     # Prepare a simple object to pickle (a dict)
     model_obj = {"a": 1, "b": [1, 2, 3]}

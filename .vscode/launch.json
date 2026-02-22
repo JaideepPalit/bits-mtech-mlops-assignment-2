@@ -31,9 +31,11 @@
       "request": "launch",
       "module": "pytest",
       "args": [
-        "${workspaceFolder}/tests"
+        "${workspaceFolder}/tests",
       ],
-      "env": {},
+      "env": {
+        "PYTHONPATH":"src"
+      },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "justMyCode": false
