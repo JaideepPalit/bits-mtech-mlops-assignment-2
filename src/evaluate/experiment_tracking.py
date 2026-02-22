@@ -36,7 +36,7 @@ def compute_metrics(model, X_test, y_test):
     }
 
 def mlflow_cnn_post_deploy_eval(metrics):
-    with mlflow.start_run(run_name="CNN Post Deploy Evaluation Metric"):
+    with mlflow.start_run(run_name="CNN Post Deploy Evaluation"):
         mlflow.log_param("model", "CNN")
         mlflow.log_param("test samples", "100")
         for k, v in metrics.items():
@@ -46,7 +46,7 @@ def mlflow_cnn_post_deploy_eval(metrics):
         mlflow.log_artifact(cnn_confusion_matrix_output_path)
 
 def mlflow_cnn(cnn_model,metrics):
-    with mlflow.start_run(run_name="CNN"):
+    with mlflow.start_run(run_name="CNN Model Training and Evaluation"):
         output_root_path = Path(__file__).resolve().parents[2] / "output"/ "evaluate"
         mlflow.log_param("model", "CNN")
         mlflow.log_param("epochs", 10)
@@ -78,7 +78,7 @@ def mlflow_cnn(cnn_model,metrics):
         print("Logged CNN run")
 
 def mlflow_eda():
-    with mlflow.start_run(run_name="EDA"):
+    with mlflow.start_run(run_name="Exploratory Data Analysis"):
         output_root_path = Path(__file__).resolve().parents[2] / "output"/ "eda"
         class_bal_image_res_channel_check_output_path=output_root_path/"class_bal_image_res_channel_check.png"
         mlflow.log_artifact(class_bal_image_res_channel_check_output_path)
