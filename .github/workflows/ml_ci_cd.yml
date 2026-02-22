@@ -16,81 +16,81 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # # -------------------------
-    # # Setup Python
-    # # -------------------------
-    # - name: Set up Python
-    #   uses: actions/setup-python@v5
-    #   with:
-    #     python-version: "3.11.9"
+    # -------------------------
+    # Setup Python
+    # -------------------------
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11.9"
 
-    # # -------------------------
-    # # Install dependencies
-    # # -------------------------
-    # - name: Install dependencies
-    #   run: |
-    #     python -m pip install --upgrade pip
-    #     pip install -r requirements.txt
+    # -------------------------
+    # Install dependencies
+    # -------------------------
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-    # # -------------------------
-    # # Linting
-    # # -------------------------
-    # - name: Run flake8 linting
-    #   continue-on-error: true
-    #   run: |
-    #     flake8 app/ tests/ --max-line-length=100
+    # -------------------------
+    # Linting
+    # -------------------------
+    - name: Run flake8 linting
+      continue-on-error: true
+      run: |
+        flake8 app/ tests/ --max-line-length=100
 
-    # # -------------------------
-    # # Unit tests
-    # # -------------------------
-    # - name: Run unit 
-    #   continue-on-error: true
-    #   run: |
-    #     pytest --junitxml=test-results.xml
+    # -------------------------
+    # Unit tests
+    # -------------------------
+    - name: Run unit 
+      continue-on-error: true
+      run: |
+        pytest --junitxml=test-results.xml
 
-    # # -------------------------
-    # # Execute eda_preprocess.py
-    # # -------------------------
-    # - name: Run preprocess eda train evaluate
-    #   continue-on-error: true
-    #   run: |
-    #     python src/eda_preprocess.py
+    # -------------------------
+    # Execute eda_preprocess.py
+    # -------------------------
+    - name: Run preprocess eda train evaluate
+      continue-on-error: true
+      run: |
+        python src/eda_preprocess.py
 
-    # # -------------------------
-    # # Execute train_evaluate_model.py
-    # # -------------------------
-    # - name: Run train and evaluate
-    #   continue-on-error: true
-    #   run: |
-    #     python src/train_evaluate_model.py
+    # -------------------------
+    # Execute train_evaluate_model.py
+    # -------------------------
+    - name: Run train and evaluate
+      continue-on-error: true
+      run: |
+        python src/train_evaluate_model.py
 
-    # # -------------------------
-    # # Set up Docker Buildx
-    # # -------------------------
-    # - name: Set up Docker Buildx
-    #   uses: docker/setup-buildx-action@v3
+    # -------------------------
+    # Set up Docker Buildx
+    # -------------------------
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    # # -------------------------
-    # # Login to Docker Hub
-    # # -------------------------
-    # - name: Login to Docker Hub
-    #   uses: docker/login-action@v3
-    #   with:
-    #     username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+    # -------------------------
+    # Login to Docker Hub
+    # -------------------------
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # # -------------------------
-    # # Build and Push Image
-    # # -------------------------
-    # - name: Build and push Docker image
-    #   uses: docker/build-push-action@v5
-    #   with:
-    #     context: .
-    #     file: Dockerfile
-    #     push: true
-    #     tags: |
-    #       ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:latest
-    #       ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
+    # -------------------------
+    # Build and Push Image
+    # -------------------------
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Dockerfile
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
 
   ML-CD-Pipeline:
     runs-on: ubuntu-latest
@@ -100,28 +100,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # # 1. Authenticate to Google Cloud 
-      # # Save your Service Account JSON key as a GitHub Secret named GCP_SA_KEY
-      # - id: 'auth'
-      #   uses: 'google-github-actions/auth@v2'
-      #   with:
-      #     credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      # 1. Authenticate to Google Cloud 
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      # # 2. Set up GKE credentials
-      # # This step installs the 'gke-gcloud-auth-plugin' automatically
-      # - id: 'get-credentials'
-      #   uses: 'google-github-actions/get-gke-credentials@v2'
-      #   with:
-      #     cluster_name: 'autopilot-cluster-1'
-      #     location: 'europe-central2' # or your cluster region/zone
+      # 2. Set up GKE credentials
+      - id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: 'autopilot-cluster-1'
+          location: 'europe-central2' # or your cluster region/zone
 
-      # - name: Update Image and Deploy to Kubernetes 
-      #   run: |
-      #     # 1. Replace the placeholder 'IMAGE_TAG' with the actual GitHub SHA
-      #     sed -i "s|IMAGE_NAME_TAG|${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}|g" charts/deployment.yaml
+      - name: Update Image and Deploy to Kubernetes 
+        run: |
+          # 1. Replace the placeholder 'IMAGE_TAG' with the actual GitHub SHA
+          sed -i "s|IMAGE_NAME_TAG|${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}|g" charts/deployment.yaml
           
-      #     # 2. Apply the updated manifest immediately
-      #     kubectl apply -f charts/ --namespace bits
+          # 2. Apply the updated manifest immediately
+          kubectl apply -f charts/ --namespace bits
 
   Smoke-Test:
     name: Smoke Test
