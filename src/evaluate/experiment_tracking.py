@@ -80,7 +80,7 @@ def mlflow_cnn(cnn_model,metrics):
 def mlflow_eda():
     with mlflow.start_run(run_name="Exploratory Data Analysis"):
         output_root_path = Path(__file__).resolve().parents[2] / "output"/ "eda"
-        class_bal_image_res_channel_check_output_path=output_root_path/"class_bal_image_res_channel_check.png"
+        class_bal_image_res_channel_check_output_path=output_root_path/"eda_class_bal_image_res_channel_check.png"
         mlflow.log_artifact(class_bal_image_res_channel_check_output_path)
 
         eda_aspect_ratio_output_path=output_root_path/"eda_aspect_ratio.png"
