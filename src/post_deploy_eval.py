@@ -50,7 +50,7 @@ def send_request(url, image_path):
 
 def post_deploy_evaluate():
     # url="http://34.102.150.120/predict"
-    url="http://0.0.0.0:8000/predict"
+    url="http://34.102.150.120/predict"
 
     limit=100
     data_dir = Path(__file__).resolve().parents[1] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images"/"test"
