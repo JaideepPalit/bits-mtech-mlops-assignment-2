@@ -13,7 +13,7 @@ WORKDIR /app
 # -------------------------------
 COPY src/ src/
 COPY output/ output/
-COPY requirements.txt .
+COPY requirements-docker.txt .
 
 # -------------------------------
 # Install system dependencies (optional but safe)
@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python dependencies
 # -------------------------------
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements-docker.txt
 
 # -------------------------------
 # Expose API port

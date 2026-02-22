@@ -31,6 +31,10 @@ app.state.predict_total_latency = 0.0
 def health():
     return {"status": "ok"}
 
+@app.get("/")
+def base():
+    return {"status": "ok"}
+
 @app.get("/metrics")
 def get_metrics():
     # Calculate average only for the predict endpoint

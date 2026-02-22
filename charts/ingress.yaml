@@ -1,18 +1,18 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: cats-dogs-ingress
-  namespace: bits
-  annotations:
-    kubernetes.io/ingress.class: gce
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: cats-dogs-service
-            port:
-              number: 80
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: cats-dogs-ingress
+#   namespace: bits
+#   annotations:
+#     kubernetes.io/ingress.class: gce
+# spec:
+#   rules:
+#   - http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: cats-dogs-service
+#             port:
+#               number: 80

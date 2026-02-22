@@ -1,25 +1,31 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python Debugger: app.py File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/app.py",
-            "console": "integratedTerminal"
-        },
-
-        {
-            "name": "Python Debugger: post eval File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/evaluate/post_deploy_eval.py",
-            "console": "integratedTerminal"
-        },
-        {
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "app.py File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/app.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "post eval File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/evaluate/post_deploy_eval.py",
+      "console": "integratedTerminal"
+    },
+    {
       "name": "pytest Test",
       "type": "debugpy",
       "request": "launch",
@@ -27,11 +33,10 @@
       "args": [
         "${workspaceFolder}/tests"
       ],
-      "env": {
-      },
+      "env": {},
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "justMyCode": false
     },
-    ]
+  ]
 }

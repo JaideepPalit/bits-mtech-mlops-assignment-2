@@ -1,7 +1,6 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.compose import ColumnTransformer
-import pickle
 from pathlib import Path
 import os
 import tensorflow as tf

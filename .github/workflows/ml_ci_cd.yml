@@ -121,7 +121,7 @@ jobs:
         with:
           action: deploy
           namespace: bits
-          timeout: 5
+          timeout: 15
           manifests: |
             charts/deployment.yaml
           images: |
@@ -129,6 +129,7 @@ jobs:
 
   Smoke-Test:
     name: Smoke Test
+    needs: ML-CD-Pipeline
     runs-on: ubuntu-latest
 
     steps:
@@ -175,6 +176,7 @@ jobs:
 
   Post-Deploy-Evalation-Test:
     name: Post Deploy Evalation Test
+    needs: ML-CD-Pipeline
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
