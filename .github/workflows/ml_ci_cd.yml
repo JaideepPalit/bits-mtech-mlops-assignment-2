@@ -127,10 +127,13 @@ jobs:
       #     images: |
       #       ${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}
       
-      - name: Deploy to Kubernetes 
+      - name: Update Image and Deploy to Kubernetes 
         run: |
-          kubectl set image deployment/cats-dogs-api \
-          cats-dogs-api=${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:65289c2a6961b019d34d9a81404638191f7a7358 -n bits
+          # 1. Replace the placeholder 'IMAGE_TAG' with the actual GitHub SHA
+          sed -i "s|IMAGE_NAME_TAG|${{ secrets.DOCKERHUB_USERNAME }}/bits_mtech_mlops_2:${{ github.sha }}|g" charts/deployment.yaml
+          
+          # 2. Apply the updated manifest immediately
+          kubectl apply -f charts/ --namespace bits
 
   Smoke-Test:
     name: Smoke Test

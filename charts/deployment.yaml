@@ -19,7 +19,7 @@ spec:
         - name: regcred
       containers:
       - name: cats-dogs-api
-        image: jaideeppalit/bits_mtech_mlops_2:db3cd266ebee4d9c5581d1bea940a5e8540807ac
+        image: IMAGE_NAME_TAG
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
