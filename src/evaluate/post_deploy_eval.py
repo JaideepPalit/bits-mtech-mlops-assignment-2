@@ -15,6 +15,8 @@ from sklearn.metrics import (
 from pathlib import Path
 from experiment_tracking import init_mlflow, mlflow_end_run,mlflow_cnn_post_deploy_eval
 from evaluate import plot_cnn_confusion_matrix
+from preprocess.preprocess import download_dataset
+from preprocess.preprocess import pre_process_dataset
 
 
 # ---------------- CONFIG ----------------
@@ -113,4 +115,6 @@ def post_deploy_evaluate():
 
 
 if __name__ == "__main__":
+    data_dir=download_dataset(url="bhavikjikadara/dog-and-cat-classification-dataset",download_path="cats_and_dogs_classification_data")
+    pre_process_dataset(data_dir=data_dir)
     post_deploy_evaluate()
