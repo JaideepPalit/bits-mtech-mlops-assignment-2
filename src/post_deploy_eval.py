@@ -13,10 +13,11 @@ from sklearn.metrics import (
     roc_auc_score
 )
 from pathlib import Path
-from experiment_tracking import init_mlflow, mlflow_end_run,mlflow_cnn_post_deploy_eval
-from evaluate import plot_cnn_confusion_matrix
+from evaluate.experiment_tracking import init_mlflow, mlflow_end_run,mlflow_cnn_post_deploy_eval
+from evaluate.evaluate import plot_cnn_confusion_matrix
 from preprocess.preprocess import download_dataset
 from preprocess.preprocess import pre_process_dataset
+
 
 
 # ---------------- CONFIG ----------------
@@ -52,7 +53,7 @@ def post_deploy_evaluate():
     url="http://0.0.0.0:8000/predict"
 
     limit=100
-    data_dir = Path(__file__).resolve().parents[2] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images"/"test"
+    data_dir = Path(__file__).resolve().parents[1] / "data"/ "preprocessed"/"preprocessed_cats_dogs_images"/"test"
 
     images = get_images(data_dir, limit)
 

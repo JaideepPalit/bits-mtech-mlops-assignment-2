@@ -190,6 +190,5 @@ jobs:
       # Execute post_deploy_eval.py
       # -------------------------
       - name: Run post_deploy_eval script
-        continue-on-error: true
         run: |
-          python src/evaluate/post_deploy_eval.py
+          python src/post_deploy_eval.py

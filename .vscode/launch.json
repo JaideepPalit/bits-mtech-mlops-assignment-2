@@ -22,7 +22,7 @@
       "name": "post eval File",
       "type": "debugpy",
       "request": "launch",
-      "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/evaluate/post_deploy_eval.py",
+      "program": "/home/jai/Desktop/code/mlops/bits-mtech-mlops-assignment-2/src/post_deploy_eval.py",
       "console": "integratedTerminal"
     },
     {
